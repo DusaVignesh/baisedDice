@@ -1,3 +1,9 @@
+const readline = require('readline');
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
 function weightedRandom(choices, probabilities) {
   let cumulativeProbability = 0;
@@ -27,21 +33,51 @@ const getAttribute=function(totalNoOfWins,winData,looseData){
     const lossProb=calculateProb(looseData.size,Array(looseData.size).fill(1));
     return offer(winloseProb,[...winData.keys()],winProb,[...looseData.keys()],lossProb);
 }
-function main(){
+
+function getUserInput(limit) {
+    return new Promise((resolve, reject) => {
+      let count = 0;
+      const userMap = new Map();
+      function askUser() {
+        if (count < limit) {
+          rl.question(`Enter key-value pair): `, (input) => {
+            const [key, value] = input.split(' ');
+            userMap.set(key,Number(value));
+            count++;
+            askUser();
+          });
+        } else {
+          resolve(userMap);
+        }
+      }
+      askUser();
+    });
+  }
+
+
+async function getLimit(){
+    return new Promise((resolve, reject) => {
+        rl.question(`Enter limit `, (input) => {
+            const limit=parseInt(input,10);
+            resolve(limit);
+        });
+      });
+}
+async function main(){
     // const data=winorloose.fetchData();
-    const winData = new Map([
-        ['10% off', 30],
-        ['20% off', 20],
-        ['30% off', 10]
-      ]);
-    const looseData = new Map([
-        ['better luck next time', null],
-        ['try again', null],
-        ['retry', null]
-      ]);
+    const winAttributeLimit=await getLimit();
+    const winData = await getUserInput(winAttributeLimit);
+    const looseAttributeLimit=await getLimit();
+    const looseData=await getUserInput(looseAttributeLimit);
+    //   const winData=await getWinData();
+    // const looseData = new Map([
+    //     ['better luck next time', null],
+    //     ['try again', null],
+    //     ['retry', null]
+    //   ]);
     let totalNoOfWins=[...winData.values()].reduce((acc,val)=>acc+val,0);
     const arr=[];
-    for(let i=0;i<2000;i++){
+    for(let i=0;i<30;i++){
         const temp=getAttribute(totalNoOfWins,winData,looseData);
         arr.push(temp[1]);
         if(temp[0]==='W'){
